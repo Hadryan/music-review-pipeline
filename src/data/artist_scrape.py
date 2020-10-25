@@ -18,26 +18,21 @@ process = CrawlerProcess({'AUTOTHROTTLE_ENABLED': True,
 
 class RymArtistSpider(scrapy.Spider):
     name = 'RymArtists'
-    years = range(1950, 2021)
-    pages = range(1, 25)
-        
-    def __init__(self, *args, **kwargs):
-        super(RymArtistSpider, self).__init__(*args, **kwargs)
-        start = kwargs.get('start')
-        stop = kwargs.get('stop')
-
-    years = range(start, stop)
-    starturls = [r"https://rateyourmusic.com/charts/top/album/{year}/{page}"
+    pages = range(1, 2)  # set to 25 once multipage is working
+    start_yr = 1
+    stop_yr = 2  # sb 25 eventually 
+    years = range(start_yr, stop_yr)
+    starturls = [f"https://rateyourmusic.com/charts/top/album/{year}/{page}"
                  for page in pages for year in years]
 
-    def parse(self, response, links_df=links_df):
+    def parse(self, response):
         if response.status == 404:
-            break
+            return 
         artists_dct = {}
         album_xp = r'//*[@id="content"]/table/tbody/tr/td/table/tbody/'
         artist_xp = r'td[3]/div[1]/div[2]/span/a'
         multiartist_xp = r"td[3]/div[1]/div[2]/span/span[2]/div/div/"
-        for album in response.xpath(album_xp)
+        for album in response.xpath(album_xp):
             # multiple artists e.g. colab:
             if response.xpath(multiartist_xp):
                 for mult_artist in album.xpath(mutiartist_xp):
@@ -50,6 +45,5 @@ class RymArtistSpider(scrapy.Spider):
             artists_dct[artist_name] = artist_url
         yield artists_dct
 
-rymartistspider = RymArtistSpider(start=1, stop=2)
-process.crawl(rymartistspider)
+process.crawl(RymArtistSpider)
 process.start()
