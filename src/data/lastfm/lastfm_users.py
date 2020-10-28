@@ -1,23 +1,27 @@
 #!/usr/bin/python/
 import requests
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from dataclasses_json import dataclass_json
 from collections import deque
+from random import randint
 from time import sleep
+from typing import Optional
+from datetime import datetime
 
 @dataclass_json
 @dataclass
 class LfmUserData():
     """dataclass to store retrieved data
-    typical use would be ::
-        lfmcrawler = LfmUsers()
-        lfmcrawler.crawl(starting_user='musicfan', depth=2)"""
+    """
     user: str = None
     friends: list = None
 
 class LfmUsers(object):
-    """Gets a large number of last fm user names"""
+    """Gets a large number of last fm user names
+    typical use would be ::
+    lfmcrawler = LfmUsers(starting_user='musicfan')
+    lfmcrawler.crawl(depth=2)"""
     def __init__(self, starting_user: str='oyo'):
         self.api_key = input("Last.fm Dev API Key")
         self.url = {'payload': {}, 'headers': {}}
@@ -25,13 +29,14 @@ class LfmUsers(object):
         self.url['payload']['method'] = 'user.getfriends'
         self.url['payload']['api_key'] = f'{self.api_key}'
         self.url['payload']['format'] = 'json'
+        self.url['payload']['limit'] = 50
         self.url['payload']['recenttracks'] = 'False'
         self.url['headers']['user-agent'] = 'chrisoyer_my-app.0.0.1alpha'
         self.crawled = []
         self.userqueue = deque([starting_user])
-        self.users = [starting_user]
+        self.users = list()
 
-    def _get_user_friends(self, user, friend_limit: int=50):
+    def _get_user_friends(self, user: str)->list:
         """requests data for one user and parses response"""
         payload = {**self.url['payload'], **{'user': user}}
         resp = requests.get(self.url['root'], params=payload, 
@@ -49,20 +54,25 @@ class LfmUsers(object):
             uncrawled_friends = [friend for friend in friends 
                                  if friend not in self.crawled]
             self.userqueue.extend(uncrawled_friends)
-            sleep(5)
+            sleep(randint(5,15))
 
-    def crawl(self, depth: int=1):
+    def crawl(self, friend_limit: Optional[int], depth: int=1)->None:
         """driver method. gets a large number of users
         parameters:    depth: loops through which to cycle; each time 
                               finding all connected users for already known users
         returns: None (adds to users attr and modifies userqueue attr)"""
-
+        if friend_limit is not None:
+            self.url['payload']['limit'] = friend_limit
         for layer in range(depth):
             self._process_userqueue()
             print(f"layer {layer} of {depth} done!")
-    def to_json(self, filename:str="../../../data/raw/lfm_users.json"):
+
+    def to_json(self):
         """saves data to file in json format"""
-        json_object = json.dumps(self.users.to_json(), indent = 4) 
-  
-        with open(filename, "w") as outfile: 
-            outfile.write(json_object) 
+        user_records = [asdict(user) for user in self.users]
+        records_and_uncrawled = {'records': user_records,
+                                 'uncrawled': self.userqueue}
+        nowtime = datetime.now().strftime('%Y-%m-%d__%H.%M.%S')
+        filename = f"../../../data/raw/lfm_users{nowtime}.json"
+        with open(filename, "w") as f:
+            json.dump(records_and_uncrawled, f, indent=2) 
