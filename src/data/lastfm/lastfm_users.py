@@ -72,7 +72,10 @@ class LfmUsers(object):
         user_records = [asdict(user) for user in self.users]
         records_and_uncrawled = {'records': user_records,
                                  'uncrawled': self.userqueue}
-        nowtime = datetime.now().strftime('%Y-%m-%d__%H.%M.%S')
-        filename = f"../../../data/raw/lfm_users{nowtime}.json"
+        nowtime = datetime.now().strftime('%Y-%m-%dT%H%M%S')
+        filename = f"../../../data/raw/unprocessed/lfm_users.{nowtime}.json"
         with open(filename, "w") as f:
-            json.dump(records_and_uncrawled, f, indent=2) 
+            json.dump(records_and_uncrawled, f, indent=2)
+
+    def to_db(self):
+        """not implemented yet. Saves data directly to db
