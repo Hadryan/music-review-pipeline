@@ -11,11 +11,8 @@ class LfmArtists(object):
         self.api_key = input('Last.fm Dev API Key')
         self.url = {'payload': {}, 'headers': {}}
         self.url['root'] = r'http://ws.audioscrobbler.com/2.0/'
-        self.url['payload']['method'] = 'user.getTopAlbums'
-        self.url['payload']['api_key'] = f'{self.api_key}'
-        self.url['payload']['format'] = 'json'
-        self.url['payload']['limit'] = 50
-        self.url['payload']['period'] = 'overall'
+        self.url['payload'] = {'method': 'user.getTopAlbums', 'api_key': f'{self.api_key}',
+                                'format': 'json', 'limit': 50, 'period': 'overall'}
         self.url['headers']['user-agent'] = 'chrisoyer_my-app.0.0.1alpha'
         self.crawled = []
         self.userqueue = []

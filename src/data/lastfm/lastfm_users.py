@@ -26,11 +26,8 @@ class LfmUsers(object):
         self.api_key = input("Last.fm Dev API Key")
         self.url = {'payload': {}, 'headers': {}}
         self.url['root'] = r'http://ws.audioscrobbler.com/2.0/'
-        self.url['payload']['method'] = 'user.getfriends'
-        self.url['payload']['api_key'] = f'{self.api_key}'
-        self.url['payload']['format'] = 'json'
-        self.url['payload']['limit'] = 50
-        self.url['payload']['recenttracks'] = 'False'
+        self.url['payload'] = {'method': 'user.getfriends', 'api_key': f'{self.api_key}',
+                               'format': 'json', 'limit': 50, 'recenttracks': 'False'}
         self.url['headers']['user-agent'] = 'chrisoyer_my-app.0.0.1alpha'
         self.crawled = []
         self.userqueue = deque([starting_user])
